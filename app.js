@@ -1,14 +1,41 @@
-// App.js: JavaScript for functionality
+// App.js: JavaScript for functionality with Local Storage Integration
 
-// Example contact list
-const contacts = [
+// Key for localStorage
+const LOCAL_STORAGE_KEY = "whatsappOnlineTrackerData";
+
+// Example contact list (default data if no localStorage data is found)
+const defaultContacts = [
   { id: 1, name: "John Doe", onlineLogs: [], isOnline: false },
   { id: 2, name: "Jane Smith", onlineLogs: [], isOnline: false },
 ];
 
 // Function to initialize the app
 function initApp() {
+  loadContactsFromLocalStorage();
   renderContacts();
+}
+
+// Function to load contacts from localStorage
+function loadContactsFromLocalStorage() {
+  const savedData = localStorage.getItem(LOCAL_STORAGE_KEY);
+  if (savedData) {
+    try {
+      const parsedData = JSON.parse(savedData);
+      contacts.length = 0; // Clear the current array
+      contacts.push(...parsedData); // Load the saved data into the contacts array
+    } catch (error) {
+      console.error("Error loading data from localStorage:", error);
+    }
+  }
+}
+
+// Function to save contacts to localStorage
+function saveContactsToLocalStorage() {
+  try {
+    localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(contacts));
+  } catch (error) {
+    console.error("Error saving data to localStorage:", error);
+  }
 }
 
 // Function to render contacts
@@ -62,6 +89,7 @@ function setContactOnline(contactId) {
   if (contact && !contact.isOnline) {
     contact.isOnline = true;
     contact.onlineLogs.push({ start: new Date().toISOString() });
+    saveContactsToLocalStorage(); // Save changes to localStorage
     renderContacts();
   }
 }
@@ -73,9 +101,13 @@ function setContactOffline(contactId) {
     contact.isOnline = false;
     const lastLog = contact.onlineLogs[contact.onlineLogs.length - 1];
     if (lastLog) lastLog.end = new Date().toISOString();
+    saveContactsToLocalStorage(); // Save changes to localStorage
     renderContacts();
   }
 }
+
+// Initialize contacts array
+const contacts = [...defaultContacts]; // Default data (overwritten by localStorage)
 
 // Initialize the app on page load
 window.onload = initApp;
