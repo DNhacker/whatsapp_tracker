@@ -1,4 +1,4 @@
-// App.js: JavaScript for functionality with Local Storage Integration
+// App.js: JavaScript for functionality with Analytics
 
 // Key for localStorage
 const LOCAL_STORAGE_KEY = "whatsappOnlineTrackerData";
@@ -13,6 +13,7 @@ const defaultContacts = [
 function initApp() {
   loadContactsFromLocalStorage();
   renderContacts();
+  renderAnalytics(); // Initialize analytics display
 }
 
 // Function to load contacts from localStorage
@@ -55,6 +56,7 @@ function renderContacts() {
     // Contact Name
     const contactName = document.createElement("span");
     contactName.textContent = contact.name;
+    contactName.onclick = () => showAnalyticsForContact(contact.id); // Show analytics on click
 
     // Actions (Online/Offline buttons)
     const actionsDiv = document.createElement("div");
@@ -104,6 +106,53 @@ function setContactOffline(contactId) {
     saveContactsToLocalStorage(); // Save changes to localStorage
     renderContacts();
   }
+}
+
+// Function to render analytics
+function renderAnalytics() {
+  const analyticsData = document.getElementById("analytics-data");
+  analyticsData.innerHTML = "<p>Select a contact to view analytics.</p>";
+}
+
+// Function to show analytics for a specific contact
+function showAnalyticsForContact(contactId) {
+  const contact = contacts.find((c) => c.id === contactId);
+  if (!contact) return;
+
+  const analyticsData = document.getElementById("analytics-data");
+  analyticsData.innerHTML = ""; // Clear previous analytics
+
+  // Calculate total online time
+  const totalOnlineTime = calculateTotalOnlineTime(contact.onlineLogs);
+
+  // Create analytics display
+  const analyticsHeader = document.createElement("h3");
+  analyticsHeader.textContent = `Analytics for ${contact.name}`;
+
+  const totalOnlineTimeDisplay = document.createElement("p");
+  totalOnlineTimeDisplay.textContent = `Total Online Time: ${formatTime(totalOnlineTime)}`;
+
+  // Append to analytics section
+  analyticsData.appendChild(analyticsHeader);
+  analyticsData.appendChild(totalOnlineTimeDisplay);
+}
+
+// Function to calculate total online time
+function calculateTotalOnlineTime(onlineLogs) {
+  return onlineLogs.reduce((total, log) => {
+    const startTime = new Date(log.start).getTime();
+    const endTime = log.end ? new Date(log.end).getTime() : Date.now();
+    return total + (endTime - startTime);
+  }, 0);
+}
+
+// Function to format time (milliseconds to HH:MM:SS)
+function formatTime(milliseconds) {
+  const totalSeconds = Math.floor(milliseconds / 1000);
+  const hours = String(Math.floor(totalSeconds / 3600)).padStart(2, "0");
+  const minutes = String(Math.floor((totalSeconds % 3600) / 60)).padStart(2, "0");
+  const seconds = String(totalSeconds % 60).padStart(2, "0");
+  return `${hours}:${minutes}:${seconds}`;
 }
 
 // Initialize contacts array
